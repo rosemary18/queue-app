@@ -1,0 +1,5 @@
+PUT http://localhost:7878/api/event/update/1
+
+{
+    "event_name": "Event Asuransi Jasindo"
+}

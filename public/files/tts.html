@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text-to-Speech Example</title>
+</head>
+<body>
+    <h1>Text-to-Speech Example</h1>
+    <textarea id="text" rows="10" cols="50" placeholder="Enter text here..."></textarea><br>
+    <button id="speakButton">Speak</button>
+    <select id="voiceSelect"></select>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const synth = window.speechSynthesis;
+            const textArea = document.getElementById('text');
+            const speakButton = document.getElementById('speakButton');
+            const voiceSelect = document.getElementById('voiceSelect');
+
+            let voices = [];
+
+            function populateVoiceList() {
+                voices = synth.getVoices();
+                voiceSelect.innerHTML = '';
+                voices.forEach((voice, i) => {
+                    const option = document.createElement('option');
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    if (voice.default) {
+                        option.textContent += ' -- DEFAULT';
+                    }
+                    option.setAttribute('data-lang', voice.lang);
+                    option.setAttribute('data-name', voice.name);
+
+                    voiceSelect.appendChild(option);
+                });
+            }
+
+            populateVoiceList();
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = populateVoiceList;
+            }
+
+            speakButton.addEventListener('click', () => {
+                const text = textArea.value;
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.pitch = 1;
+                utterance.rate = .8;
+                const selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
+                for(let i = 0; i < voices.length; i++) {
+                    if(voices[i].name === selectedOption) {
+                        utterance.voice = voices[i];
+                        break;
+                    }
+                }
+                synth.speak(utterance);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+POST http://localhost:7878/tts
+
+{
+    "text": "Antrian selanjutnya, A, 0, 0, 1."
+}

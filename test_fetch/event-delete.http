@@ -1,0 +1,1 @@
+DELETE http://localhost:7878/api/event/delete/2
