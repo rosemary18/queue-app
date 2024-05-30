@@ -1,24 +1,14 @@
-const { FETCH_REQUEST_TYPES } = require('../../types')
-const { generateQr } = require('../../utils')
+const { FETCH_REQUEST_TYPES, RES_TYPES } = require('../../types')
 const Path = require('path')
 
 // Handlers
 
 const handler404 = async (req, res) => {
-    return res.response({
-        statusCode: 404,
-        message: "Where do you want to go, it seems you are lost, come back to the right path, okay 🙃",
-        error: "You are lost!"
-    })
+    return res.response(RES_TYPES[404]("You are lost!"));
 } 
 
 const handlerIndex = async (req, res) => {
     return res.response({ msg: "You are busted!"})
-}
-
-const handlerTestQR = async (req, res) => {
-    generateQr("Hello World")
-    return res.response({ msg: "Create QR!"})
 }
 
 // Routing
@@ -26,19 +16,8 @@ const handlerTestQR = async (req, res) => {
 const routes = [
     {
         method: FETCH_REQUEST_TYPES.GET,
-        path: '/testqr',
-        handler: handlerTestQR,
-        options: {
-            auth: false
-        }
-    },
-    {
-        method: FETCH_REQUEST_TYPES.GET,
         path: '/',
         handler: handlerIndex,
-        options: {
-            auth: false
-        }
     },
     {
         method: FETCH_REQUEST_TYPES.GET,
@@ -102,9 +81,6 @@ const routes = [
         method: [FETCH_REQUEST_TYPES.GET, FETCH_REQUEST_TYPES.POST, FETCH_REQUEST_TYPES.PUT, FETCH_REQUEST_TYPES.DELETE],
         path: '/{any*}',
         handler: handler404,
-        options: {
-            auth: false
-        }
     }
 ]
 

@@ -1,0 +1,9 @@
+POST http://localhost:7878/api/signin/booth
+Content-Type: application/json
+
+{
+    "event_code": "XKkQ53xYJHas",
+    "event_booth_pass": "rIxPSVdtK8rQ",
+    "booth_code": "A03",
+    "socket_id": "0C0IRhOGOZZcKf9aAAAB"
+}

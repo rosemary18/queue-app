@@ -1,10 +1,9 @@
+const Joi = require('joi');
 const conf = require('./api.config')
 const { FETCH_REQUEST_TYPES, RES_TYPES } = require('../../types')
 const { generateRandomString } = require('../../utils')
 const db = require('../../services/db')
 const abs_path = conf.base_path + '/event'
-
-const Joi = require('joi');
 
 const sql_select_events = `
     SELECT
@@ -16,12 +15,32 @@ const sql_select_events = `
         e.created_at,
         e.updated_at,
         (
-            SELECT COALESCE(json_group_array(json_object('id', c.id, 'ip', c.ip, 'counter_code', c.counter_code)), '[]')
-            FROM tbl_counters c WHERE c.event_id = e.id
+            SELECT COALESCE(
+                json_group_array(
+                    json_object(
+                        'id', c.id,
+                        'ip', c.ip,
+                        'counter_code', c.counter_code,
+                        'status', c.status,
+                        'socket_id', c.socket_id
+                    )
+                ),
+                '[]'
+            ) FROM tbl_counters c WHERE c.event_id = e.id
         ) AS counters,
         (
-            SELECT COALESCE(json_group_array(json_object('id', b.id, 'ip', b.ip, 'booth_code', b.booth_code)), '[]')
-            FROM tbl_booths b WHERE b.event_id = e.id
+            SELECT COALESCE(
+                json_group_array(
+                    json_object(
+                        'id', b.id,
+                        'ip', b.ip,
+                        'booth_code', b.booth_code,
+                        'status', b.status,
+                        'socket_id', b.socket_id
+                    )
+                ),
+                '[]'
+            ) FROM tbl_booths b WHERE b.event_id = e.id
         ) AS booths,
         (
             SELECT COALESCE(

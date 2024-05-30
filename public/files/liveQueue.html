@@ -11,9 +11,33 @@
             
             const socket = io();
 
+            socket.on('connect', function() {
+                const item = document.createElement('li');
+                item.textContent = "Socket ID: " + socket.id;
+                document.getElementById('messages').appendChild(item);
+            })
+
             socket.on('message', function(msg){
                 const item = document.createElement('li');
                 item.textContent = msg;
+                document.getElementById('messages').appendChild(item);
+            });
+
+            socket.on('queue-updated', function(){
+                const item = document.createElement('li');
+                item.textContent = "Queues updated";
+                document.getElementById('messages').appendChild(item);
+            });
+
+            socket.on('counter-signed', function(){
+                const item = document.createElement('li');
+                item.textContent = "Counter signed";
+                document.getElementById('messages').appendChild(item);
+            });
+
+            socket.on('booth-signed', function(){
+                const item = document.createElement('li');
+                item.textContent = "Booth signed";
                 document.getElementById('messages').appendChild(item);
             });
 

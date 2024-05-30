@@ -2,7 +2,7 @@ const Hapi = require('@hapi/hapi')
 const Inert = require('@hapi/inert')
 const Path = require('path')
 const routes = require('../routes')
-const { listenSocket } = require('./socket')
+const socket = require('./socket')
 
 // Hapi configurations
 const configHapi = {
@@ -32,7 +32,7 @@ const server = async () => {
         .then(() => console.log(`[APP]: Service available on ${app.info.uri}, lets rock n roll ...`))
         .catch((err) => console.log(`Service failed to start... \n ${err}`))
     
-    listenSocket(app);
+    socket.listenSocket(app);
 }
 
 module.exports = server

@@ -9,5 +9,5 @@ const start = () => {
 
 module.exports = {
     start,
-    db
+    db,
 }

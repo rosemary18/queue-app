@@ -3,6 +3,12 @@ const SocketIO = require('socket.io');
 let SIO = null
 let socket_connections = new Map();
 
+const emit = (event, data) => {
+    
+    console.log(`[SOCKET]: Emitting event ${event}`);
+    SIO?.emit(event, data);
+}
+
 const listenSocket = (app) => {
 
     // Apply app to socket
@@ -28,10 +34,12 @@ const listenSocket = (app) => {
         });
 
     });
+
+    module.exports.io = SIO
 }
 
 module.exports = {
     listenSocket,
-    SIO,
-    socket_connections
+    socket_connections,
+    emit
 }

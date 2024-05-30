@@ -1,0 +1,9 @@
+POST http://localhost:7878/api/participant/add
+Content-Type: application/json
+
+{
+    "counter_id": "1",
+    "queue_code": "A006",
+    "name": "Zulkarnainuni",
+    "phone_number": "08994697966"
+}

@@ -1,0 +1,9 @@
+POST http://localhost:7878/api/signin/counter
+Content-Type: application/json
+
+{
+    "event_code": "XKkQ53xYJHas",
+    "event_counter_pass": "X4KNqhfjN17Z",
+    "counter_code": "A02",
+    "socket_id": "0C0IRhOGO"
+}

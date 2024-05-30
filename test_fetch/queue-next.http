@@ -1,0 +1,5 @@
+POST http://localhost:7878/api/queue/next
+
+{
+    "booth_id": 1
+}

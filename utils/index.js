@@ -1,5 +1,5 @@
 const { generateQr, generateRandomString } = require('./qr');
-const { sendWa } = require('./wa');
+const sendWa = require('./wa');
 const generateQueueImage = require('./queue-image');
 
 module.exports = {

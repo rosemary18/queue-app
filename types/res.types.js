@@ -9,7 +9,11 @@ const RES_TYPES = {
         statusCode: 400,
         error: 1,
         message: msg || "Bad Request",
-        data: []
+    }),
+    404: (msg) => ({
+        statusCode: 400,
+        error: 1,
+        message: msg || "Not Found",
     }),
     500: (msg) => ({
         statusCode: 500,
