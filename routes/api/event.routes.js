@@ -4,6 +4,7 @@ const { FETCH_REQUEST_TYPES, RES_TYPES } = require('../../types')
 const { generateRandomString } = require('../../utils')
 const db = require('../../services/db')
 const abs_path = conf.base_path + '/event'
+const socket = require('../../services/socket')
 
 const sql_select_events = `
     SELECT
@@ -103,6 +104,7 @@ const handlerCreateEvent = async (req, res) => {
         newEvent.participants = JSON.parse(newEvent.participants) ?? [];
 
         // Kembalikan respons dengan data event yang baru dimasukkan
+        socket.emit('event-add')
         return res.response(RES_TYPES[200](newEvent, 'Event created successfully'));
     } catch (err) {
         console.log(err);
@@ -205,6 +207,39 @@ const handlerDeleteEvent = async (req, res) => {
         const sql = `DELETE FROM tbl_events WHERE id = ?`;
         const isDeleted = await new Promise((resolve, reject) => {
             db.run(sql, [eventId], function (err) {
+                if (err) {
+                    console.log(err);
+                    return reject(new Error('Database deletion error'));
+                }
+                resolve(true);
+            });
+        })
+
+        const sql_delete_participants = `DELETE FROM tbl_participants WHERE event_id = ?`;
+        await new Promise((resolve, reject) => {
+            db.run(sql_delete_participants, [eventId], function (err) {
+                if (err) {
+                    console.log(err);
+                    return reject(new Error('Database deletion error'));
+                }
+                resolve(true);
+            });
+        })
+
+        const sql_delete_counters = `DELETE FROM tbl_counters WHERE event_id = ?`;
+        await new Promise((resolve, reject) => {
+            db.run(sql_delete_counters, [eventId], function (err) {
+                if (err) {
+                    console.log(err);
+                    return reject(new Error('Database deletion error'));
+                }
+                resolve(true);
+            });
+        })
+
+        const sql_delete_booths = `DELETE FROM tbl_booths WHERE event_id = ?`;
+        await new Promise((resolve, reject) => {
+            db.run(sql_delete_booths, [eventId], function (err) {
                 if (err) {
                     console.log(err);
                     return reject(new Error('Database deletion error'));

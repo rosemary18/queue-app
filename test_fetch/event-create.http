@@ -2,5 +2,5 @@ POST http://localhost:7878/api/event/create
 Content-Type: application/json
 
 {
-    "event_name": "Event Jasindo"
+    "event_name": "Apotek Sana Sini"
 }

@@ -152,20 +152,19 @@ const handlerAddParticipant = async (req, res) => {
                     resolve(true);
                 });
             })
-            sendWa(link_image, queue_code, phone_number).then(async res => {
-                if (res?.data?.status) {
-                    const sql_update_wa_status = `UPDATE tbl_participants SET wa_sent_status = ? WHERE id = ?`;
-                    await new Promise((resolve, reject) => {
-                        db.run(sql_update_wa_status, [1, newParticipantID], function (err) {
-                            if (err) {
-                                console.log(err);
-                                return reject(new Error('Database query error'));
-                            }
-                            resolve(true);
-                        });
-                    })
-                }
-            }).catch(err => console.log(err));
+            let isSent = await sendWa(link_image, queue_code, phone_number)
+            if (isSent) {
+                const sql_update_wa_status = `UPDATE tbl_participants SET wa_sent_status = ? WHERE id = ?`;
+                await new Promise((resolve, reject) => {
+                    db.run(sql_update_wa_status, [1, newParticipantID], function (err) {
+                        if (err) {
+                            console.log(err);
+                            return reject(new Error('Database query error'));
+                        }
+                        resolve(true);
+                    });
+                })
+            }
         } 
     }
 
@@ -252,20 +251,21 @@ const handlerResendWA = async (req, res) => {
 
     if (!participant) return res.response(RES_TYPES[404]("Participant not found"));
 
-    sendWa(participant.ticket_link, participant.queue_code, participant.phone_number).then(res => {
-        if (res?.data?.status) {
-            const sql_update_wa_status = `UPDATE tbl_participants SET wa_sent_status = ? WHERE id = ?`;
-            new Promise((resolve, reject) => {
-                db.run(sql_update_wa_status, [1, id], function (err) {
-                    if (err) {
-                        console.log(err);
-                        return reject(new Error('Database query error'));
-                    }
-                    resolve(true);
-                });
-            })
-        } else return res.response(RES_TYPES[400](null, "WA failed to send"));
-    }).catch(err => console.log(err));
+    let isSent = sendWa(participant.ticket_link, participant.queue_code, participant.phone_number)
+
+    if (!isSent) return res.response(RES_TYPES[404]("WA sent failed"));
+
+    // Update wa sent status
+    const sql_update_wa_status = `UPDATE tbl_participants SET wa_sent_status = ? WHERE id = ?`;
+    new Promise((resolve, reject) => {
+        db.run(sql_update_wa_status, [1, id], function (err) {
+            if (err) {
+                console.log(err);
+                return reject(new Error('Database query error'));
+            }
+            resolve(true);
+        });
+    })
 
     return res.response(RES_TYPES[200](null, "WA sent successfully"));
 }

@@ -7,17 +7,15 @@ const handler404 = async (req, res) => {
     return res.response(RES_TYPES[404]("You are lost!"));
 } 
 
-const handlerIndex = async (req, res) => {
-    return res.response({ msg: "You are busted!"})
-}
-
 // Routing
 
 const routes = [
     {
         method: FETCH_REQUEST_TYPES.GET,
         path: '/',
-        handler: handlerIndex,
+        handler: (h, r) => {
+            return r.file(Path.join(__dirname, '../../public/files/index.html'))
+        }
     },
     {
         method: FETCH_REQUEST_TYPES.GET,
@@ -67,7 +65,28 @@ const routes = [
         method: FETCH_REQUEST_TYPES.GET,
         path: '/liveQueue/{id}',
         handler: (h, r) => {
-            return r.file(Path.join(__dirname, '../../public/files/liveQueue.html'))
+            return r.file(Path.join(__dirname, '../../public/files/live_queue.html'))
+        }
+    },
+    {
+        method: FETCH_REQUEST_TYPES.GET,
+        path: '/admin',
+        handler: (h, r) => {
+            return r.file(Path.join(__dirname, '../../public/files/admin.html'))
+        }
+    },
+    {
+        method: FETCH_REQUEST_TYPES.GET,
+        path: '/booth',
+        handler: (h, r) => {
+            return r.file(Path.join(__dirname, '../../public/files/booth.html'))
+        }
+    },
+    {
+        method: FETCH_REQUEST_TYPES.GET,
+        path: '/counter',
+        handler: (h, r) => {
+            return r.file(Path.join(__dirname, '../../public/files/counter.html'))
         }
     },
     {
