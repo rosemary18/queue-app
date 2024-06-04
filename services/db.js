@@ -69,14 +69,13 @@ db.run(`
     setTimeout(() => {
 
         // Reset status and socket id for counters and booths, fill socket id to empty string
-
         db.run(`UPDATE tbl_counters SET status = 0, socket_id = ''`, (err) => {
             if (err) return console.error(err.message);
-            console.log('[DATABASE]: Reset status and socket id for counters and booths');
+            console.log('[DATABASE]: Reset status and socket id for counters');
         });
         db.run(`UPDATE tbl_booths SET status = 0, socket_id = ''`, (err) => {
             if (err) return console.error(err.message);
-            console.log('[DATABASE]: Reset status and socket id for counters and booths');
+            console.log('[DATABASE]: Reset status and socket id for booths');
         });
 
     }, 3000);

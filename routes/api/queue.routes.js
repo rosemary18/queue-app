@@ -5,20 +5,50 @@ const db = require('../../services/db')
 const socket = require('../../services/socket')
 const abs_path = conf.base_path + '/queue'
 
+const sql_select_queue = `
+    SELECT
+        e.id,
+        e.event_id,
+        e.queue_code,
+        e.name,
+        e.phone_number,
+        e.input_by_counter,
+        e.serve_by_booth,
+        e.status,
+        e.created_at,
+        e.updated_at,
+        (
+            SELECT COALESCE(
+                json_object(
+                    'id', b.id,
+                    'ip', b.ip,
+                    'booth_code', b.booth_code,
+                    'status', b.status,
+                    'socket_id', b.socket_id
+                ),
+                '{}'
+            ) FROM tbl_booths b WHERE b.id = e.serve_by_booth
+        ) AS booth
+    FROM tbl_participants e
+`
+
 // Handlers
 
 const handlerGetQueues = async (req, res) => {
 
     const eventId = req.params.eventId;
-    const sql_participants = `SELECT * FROM tbl_participants WHERE event_id = ? AND status = 0 ORDER BY id ASC`;
+    const sql_participants = `${sql_select_queue} WHERE e.event_id = ? AND e.status = 0 ORDER BY id ASC`;
     const participants = await new Promise((resolve, reject) => {
         db.all(sql_participants, [eventId], function (err, rows) {
             if (err) {
                 console.log(err);
                 return reject(new Error('Database query error'));
             }
-            console.log(rows)
-            resolve(rows);
+            const result = rows.map(row => ({
+                ...row,
+                booth: JSON.parse(row?.booth) ?? {},
+            }));
+            resolve(result || []);
         });
     })
 
@@ -42,6 +72,9 @@ const handlerNextQueue = async (req, res) => {
     })
     
     if (!booth) return res.response(RES_TYPES[404]("Booth not found"));
+
+    console.log(booth)
+    console.log(booth_id)
 
     // Get participant that served by this booth but status is 0
     const sql_participant = `SELECT * FROM tbl_participants WHERE serve_by_booth = ? AND status = 0 ORDER BY id ASC LIMIT 1`;
@@ -70,7 +103,7 @@ const handlerNextQueue = async (req, res) => {
     }
 
     // Get all participants
-    const sql_participants = `SELECT * FROM tbl_participants WHERE event_id = ? AND status = 0 ORDER BY id ASC`;
+    const sql_participants = `SELECT * FROM tbl_participants WHERE event_id = ? AND status = 0 AND serve_by_booth IS NULL ORDER BY id ASC`;
     const participants = await new Promise((resolve, reject) => {
         db.all(sql_participants, [booth.event_id], function (err, rows) {
             if (err) {
@@ -83,7 +116,7 @@ const handlerNextQueue = async (req, res) => {
 
     if (!(participants?.length > 0)) {
         socket.emit('queue-updated');
-        return res.response(RES_TYPES[200]("Queues completed successfully"));
+        return res.response(RES_TYPES[200](null, "Queues completed successfully"));
     }
 
     // Update serve_by_booth first items of participant to this booth
@@ -100,8 +133,10 @@ const handlerNextQueue = async (req, res) => {
 
     if (!nextUpdated) return res.response(RES_TYPES[400]("Failed to update next participant"));
 
+    participants[0].serve_by_booth = booth_id
+
     socket.emit('queue-updated');
-    return res.response(RES_TYPES[200]("Next queue assigned successfully"));
+    return res.response(RES_TYPES[200](participants[0], "Next queue assigned successfully"));
 
 }
 

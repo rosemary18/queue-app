@@ -66,7 +66,7 @@ const handlerGetParticipantByEventId = async (req, res) => {
 const handlerGetParticipantByCounterId= async (req, res) => {
 
     const counterId = req.params.id;
-    const sql_participants = `SELECT * FROM tbl_participants WHERE id = ?`;
+    const sql_participants = `SELECT * FROM tbl_participants WHERE input_by_counter = ? ORDER BY id DESC`;
     const participants = await new Promise((resolve, reject) => {
         db.all(sql_participants, [counterId], function (err, rows) {
             if (err) {
@@ -230,6 +230,8 @@ const handlerDeleteParticipant = async (req, res) => {
         });
     })
 
+    socket.emit("participant-updated")
+
     return res.response(RES_TYPES[200](null, "Participant deleted successfully"));
 }
 
@@ -267,7 +269,23 @@ const handlerResendWA = async (req, res) => {
         });
     })
 
+    socket.emit('participant-updated')
     return res.response(RES_TYPES[200](null, "WA sent successfully"));
+}
+
+const handlerBulkParticipant = async (req, res) => {
+
+    const sql_participant = `INSERT INTO tbl_participants (event_id, queue_code, name, phone_number, ticket_link, input_by_counter) VALUES (?, ?, ?, ?, ?, ?)`;
+    for (let index = 0; index < 900; index++) {
+        db.run(sql_participant, ["1", `A${('000'+(index+1)).slice(-3)}`, "John Doe", "085765627679", '', "1"], function (err) {
+            if (err) {
+                console.log(err);
+            } else console.log(`inserted ${index+1} participant`);
+        });        
+
+    }
+
+    return res.response(RES_TYPES[200](null, "Bulk 900 participant"));
 }
 
 // Routing
@@ -310,12 +328,25 @@ const routes = [
     },
     {
         method: FETCH_REQUEST_TYPES.POST,
+        path: abs_path + '/bulk',
+        handler: handlerBulkParticipant
+    },
+    {
+        method: FETCH_REQUEST_TYPES.POST,
         path: abs_path + '/resend-wa/{id}',
         handler: handlerResendWA
     },
     {
         method: FETCH_REQUEST_TYPES.PUT,
         path: abs_path + '/update/{id}',
+        options: {
+            validate: {
+                payload: Joi.object({
+                    name: Joi.string().required(),
+                    phone_number: Joi.string().required(),
+                })
+            },
+        },
         handler: handlerUpdateParticipant
     },
     {

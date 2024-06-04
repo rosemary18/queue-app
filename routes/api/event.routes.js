@@ -1,7 +1,7 @@
 const Joi = require('joi');
 const conf = require('./api.config')
 const { FETCH_REQUEST_TYPES, RES_TYPES } = require('../../types')
-const { generateRandomString } = require('../../utils')
+const { generateRandomString, createPDF } = require('../../utils')
 const db = require('../../services/db')
 const abs_path = conf.base_path + '/event'
 const socket = require('../../services/socket')
@@ -41,7 +41,7 @@ const sql_select_events = `
                     )
                 ),
                 '[]'
-            ) FROM tbl_booths b WHERE b.event_id = e.id
+            ) FROM tbl_booths b WHERE b.event_id = e.id ORDER BY b.booth_code ASC
         ) AS booths,
         (
             SELECT COALESCE(
@@ -133,12 +133,45 @@ const handlerGetEvent = async (req, res) => {
             });
         });
 
-        newEvent.counters = JSON.parse(newEvent.counters) ?? [];
-        newEvent.booths = JSON.parse(newEvent.booths) ?? [];
-        newEvent.participants = JSON.parse(newEvent.participants) ?? [];
+        newEvent.counters = JSON.parse(newEvent?.counters) ?? [];
+        newEvent.booths = JSON.parse(newEvent?.booths) ?? [];
+        newEvent.participants = JSON.parse(newEvent?.participants) ?? [];
 
         // Kembalikan respons dengan data event yang baru dimasukkan
         return res.response(RES_TYPES[200](newEvent, 'Get event successfully'));
+    } catch (err) {
+        console.log(err);
+        return res.response(RES_TYPES[500](err.message));
+    }
+};
+
+const handlerGetEventByCode = async (req, res) => {
+
+    const code = req.params.code;
+
+    try {
+
+        // Ambil data event yang baru dimasukkan
+        const event = await new Promise((resolve, reject) => {
+            const sql = `
+                ${sql_select_events}
+                WHERE e.event_code = ?
+            `;
+            db.get(sql, [code], (err, row) => {
+                if (err) {
+                    console.log(err);
+                    return reject(new Error('Database query error'));
+                }
+                resolve(row);
+            });
+        });
+
+        event.counters = JSON.parse(event?.counters) ?? [];
+        event.booths = JSON.parse(event?.booths) ?? [];
+        event.participants = JSON.parse(event?.participants) ?? [];
+
+        // Kembalikan respons dengan data event yang baru dimasukkan
+        return res.response(RES_TYPES[200](event, 'Get event successfully'));
     } catch (err) {
         console.log(err);
         return res.response(RES_TYPES[500](err.message));
@@ -256,6 +289,37 @@ const handlerDeleteEvent = async (req, res) => {
     }
 } 
 
+const handlerExportEvent = async (req, res) => {
+
+    const event_id = req.params.eventId;
+
+    const sql_get_event = `
+        ${sql_select_events}
+        WHERE e.id = ?
+    `;
+    const event = await new Promise((resolve, reject) => {
+        db.get(sql_get_event, [event_id], (err, row) => {
+            if (err) {
+                console.log(err);
+                return reject(new Error('Database query error'));
+            }
+            resolve(row);
+        });
+    })
+
+    if (!event) return res.response(RES_TYPES[404]("Event not found"));
+    
+    event.participants = JSON.parse(event?.participants) ?? [];
+
+    let pdf = await new Promise((resolve, reject) => {
+        createPDF(event?.event_name, event?.participants).then(data => resolve(data)).catch(err => resolve(""));
+    })
+
+    return res.response(Buffer.from(pdf))
+    .type('application/pdf')
+    .header('Content-Disposition', 'attachment;');
+}
+
 
 // Routing
 
@@ -267,8 +331,18 @@ const routes = [
     },
     {
         method: FETCH_REQUEST_TYPES.GET,
+        path: abs_path+'/export/{eventId}',
+        handler: handlerExportEvent
+    },
+    {
+        method: FETCH_REQUEST_TYPES.GET,
         path: abs_path + '/{eventId}',
         handler: handlerGetEvent
+    },
+    {
+        method: FETCH_REQUEST_TYPES.GET,
+        path: abs_path + '/code/{code}',
+        handler: handlerGetEventByCode
     },
     {
         method: FETCH_REQUEST_TYPES.POST,

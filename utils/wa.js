@@ -11,7 +11,6 @@ const sendWa = async (ticket_link, queue_code, phone_number) => {
     body.append("target", phone_number)
     body.append("message", `Halo, nomor antrian anda dengan kode ${queue_code}.\nTerima kasih.`)
     body.append("url", ticket_link)
-    // body.append("filename", "filename.pdf")
     body.append("schedule", "0")
     body.append("delay", "2")
 

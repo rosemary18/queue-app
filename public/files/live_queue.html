@@ -1,61 +1,71 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Socket.IO with Hapi.js</title>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-
-            var curl = window.location.href.split('/')
-            console.log(curl[curl.length - 1]);
-            
-            const socket = io();
-
-            socket.on('connect', function() {
-                const item = document.createElement('li');
-                item.textContent = "Socket ID: " + socket.id;
-                document.getElementById('messages').appendChild(item);
-            })
-
-            socket.on('message', function(msg){
-                const item = document.createElement('li');
-                item.textContent = msg;
-                document.getElementById('messages').appendChild(item);
-            });
-
-            socket.on('queue-updated', function(){
-                const item = document.createElement('li');
-                item.textContent = "Queues updated";
-                document.getElementById('messages').appendChild(item);
-            });
-
-            socket.on('counter-signed', function(){
-                const item = document.createElement('li');
-                item.textContent = "Counter signed";
-                document.getElementById('messages').appendChild(item);
-            });
-
-            socket.on('booth-signed', function(){
-                const item = document.createElement('li');
-                item.textContent = "Booth signed";
-                document.getElementById('messages').appendChild(item);
-            });
-
-            document.getElementById('form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const input = document.getElementById('input');
-                socket.emit('message', input.value);
-                input.value = '';
-                return false;
-            });
-
-        });
-    </script>
-</head>
-<body>
-    <ul id="messages"></ul>
-    <form id="form">
-        <input id="input" autocomplete="off" /><button>Send</button>
-    </form>
-</body>
+<html lang="en" class="dark">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv='cache-control' content='no-cache'> 
+        <meta http-equiv='expires' content='0'> 
+        <meta http-equiv='pragma' content='no-cache'>
+        <title>Live Queues | Central Events Queues</title>
+        <link rel="shortcut icon" href="/icons/fav.png" type="image/x-icon">
+        <link rel="stylesheet" href="/files/css/live_queue.css">
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+        <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+        <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+    </head>
+    <body>
+        <div id="root"></div>
+        <audio id="s-call-1"><source src="/sounds/sound-call-1.wav" type="audio/mpeg"></audio>
+        <audio id="s-call-2"><source src="/sounds/sound-call-2.wav" type="audio/mpeg"></audio>
+        <audio id="s-call-3"><source src="/sounds/sound-call-3.wav" type="audio/mpeg"></audio>
+        <audio id="s-0"><source src="/sounds/0.wav" type="audio/mpeg"></audio>
+        <audio id="s-1"><source src="/sounds/1.wav" type="audio/mpeg"></audio>
+        <audio id="s-2"><source src="/sounds/2.wav" type="audio/mpeg"></audio>
+        <audio id="s-3"><source src="/sounds/3.wav" type="audio/mpeg"></audio>
+        <audio id="s-4"><source src="/sounds/4.wav" type="audio/mpeg"></audio>
+        <audio id="s-5"><source src="/sounds/5.wav" type="audio/mpeg"></audio>
+        <audio id="s-6"><source src="/sounds/6.wav" type="audio/mpeg"></audio>
+        <audio id="s-7"><source src="/sounds/7.wav" type="audio/mpeg"></audio>
+        <audio id="s-8"><source src="/sounds/8.wav" type="audio/mpeg"></audio>
+        <audio id="s-9"><source src="/sounds/9.wav" type="audio/mpeg"></audio>
+        <audio id="s-a"><source src="/sounds/A.wav" type="audio/mpeg"></audio>
+        <audio id="s-b"><source src="/sounds/B.wav" type="audio/mpeg"></audio>
+        <audio id="s-c"><source src="/sounds/C.wav" type="audio/mpeg"></audio>
+        <audio id="s-d"><source src="/sounds/D.wav" type="audio/mpeg"></audio>
+        <audio id="s-e"><source src="/sounds/E.wav" type="audio/mpeg"></audio>
+        <audio id="s-f"><source src="/sounds/F.wav" type="audio/mpeg"></audio>
+        <audio id="s-g"><source src="/sounds/G.wav" type="audio/mpeg"></audio>
+        <audio id="s-h"><source src="/sounds/H.wav" type="audio/mpeg"></audio>
+        <audio id="s-i"><source src="/sounds/I.wav" type="audio/mpeg"></audio>
+        <audio id="s-j"><source src="/sounds/J.wav" type="audio/mpeg"></audio>
+        <audio id="s-k"><source src="/sounds/K.wav" type="audio/mpeg"></audio>
+        <audio id="s-l"><source src="/sounds/L.wav" type="audio/mpeg"></audio>
+        <audio id="s-m"><source src="/sounds/M.wav" type="audio/mpeg"></audio>
+        <audio id="s-n"><source src="/sounds/N.wav" type="audio/mpeg"></audio>
+        <audio id="s-o"><source src="/sounds/O.wav" type="audio/mpeg"></audio>
+        <audio id="s-p"><source src="/sounds/P.wav" type="audio/mpeg"></audio>
+        <audio id="s-q"><source src="/sounds/Q.wav" type="audio/mpeg"></audio>
+        <audio id="s-r"><source src="/sounds/R.wav" type="audio/mpeg"></audio>
+        <audio id="s-s"><source src="/sounds/S.wav" type="audio/mpeg"></audio>
+        <audio id="s-t"><source src="/sounds/T.wav" type="audio/mpeg"></audio>
+        <audio id="s-u"><source src="/sounds/U.wav" type="audio/mpeg"></audio>
+        <audio id="s-v"><source src="/sounds/V.wav" type="audio/mpeg"></audio>
+        <audio id="s-w"><source src="/sounds/W.wav" type="audio/mpeg"></audio>
+        <audio id="s-x"><source src="/sounds/X.wav" type="audio/mpeg"></audio>
+        <audio id="s-y"><source src="/sounds/Y.wav" type="audio/mpeg"></audio>
+        <audio id="s-z"><source src="/sounds/Z.wav" type="audio/mpeg"></audio>
+    </body>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <script src="/files/lib/live_queue.js"></script>
 </html>

@@ -14,24 +14,12 @@ const handlerOnLoad = () => {
     
     const socket = io();
 
-    socket.on('connect', function () {
-        
-    })
-
     socket.on('event-add', handlerGetAllEvents);
-
-    socket.on('queue-updated', function () {
-        if (STATES.event) handlerGetEvent()
-    });
-
-    socket.on('counter-signed', function () {
-        
-    });
-
-    socket.on('booth-signed', function () {
-        
-    });
-
+    socket.on('event-updated', handlerGetAllEvents);
+    socket.on('queue-updated', handlerGetEvent);
+    socket.on('event-updated', handlerGetEvent);
+    socket.on('counter-signed', handlerGetEvent);
+    socket.on('booth-signed', handlerGetEvent);
 }
 
 const handlerUnLoad = () => {
@@ -40,8 +28,8 @@ const handlerUnLoad = () => {
 
 const Start = async () => {
 
-    // let x = prompt('To continue, fill your password')
-    // while (x != "xxx") x = prompt('Password wrong, please try again.')
+    let x = prompt('To continue, fill your password')
+    while (x != "xxx") x = prompt('Password wrong, please try again.')
     
     await handlerGetAllEvents()
     renderScreen()
@@ -49,7 +37,7 @@ const Start = async () => {
 
 // Services
 
-const handlerGetAllEvents = async () => {
+const handlerGetAllEvents = async (render = true) => {
 
     fetch('/api/event', {
         method: 'GET',
@@ -62,12 +50,14 @@ const handlerGetAllEvents = async () => {
     .then(res => {
         if (res?.statusCode == 200) {
             STATES.events = res.data
-            renderScreen()
+            if (render) renderScreen()
         }
     })
 }
 
 const handlerGetEvent = async () => {
+
+    if (!STATES.event?.id) return
 
     fetch(`/api/event/${STATES.event?.id}`, {
         method: 'GET',
@@ -80,15 +70,17 @@ const handlerGetEvent = async () => {
     .then(res => {
         if (res?.statusCode == 200) {
             STATES.event = res.data
-            renderScreen()
+            renderScreen(STATES.event?.event_name, renderEvent)
+            handlerGetAllEvents(false)
         }
     })
+
 }
 
 const handlerDeleteEvent = (id) => {
     return () => {
 
-        let confirmed = confirm(`Are you sure you want to delete event ${STATES.events[id].event_name} ?`);
+        let confirmed = confirm(`Are you sure you want to delete event ${STATES.events[id].event_name} ?`)
 
         if (!confirmed) return
 
@@ -176,6 +168,15 @@ const handlerCreateEvent = () => {
     })
 }
 
+const handlerExportEvent = () => {
+    
+    const a = document.createElement('a')
+    a.href = `/api/event/export/${STATES.event?.id}`
+    a.download = `Queues_${STATES.event?.event_code}.pdf`
+    
+    a.click();
+}
+
 // Renders
 
 const createButton = ({ text, ic, color = "white", size = "bx-xs", active = false, rotation, backgroundColor,  onClick }) => {
@@ -260,7 +261,7 @@ const createTableEvent = () => {
                             renderScreen(STATES.events[i]?.event_name, renderEvent)
                         }
                     })
-                    const btnMonitor = createButton({ ic: "bxs-slideshow", onClick: () => window.open(`/liveQueue/${STATES.events[i]?.event_code}`) })
+                    const btnMonitor = createButton({ ic: "bxs-slideshow", onClick: () => window.open(`/live-queue/${STATES.events[i]?.event_code}`) })
                     const btnDelete = createButton({ ic: "bx-x", color: "red", backgroundColor: "#FF000035", onClick: handlerDeleteEvent(i) })
                     td.style.display = "flex"
                     td.style.flexDirection = "row"
@@ -316,8 +317,8 @@ const createTableEventParticipants = () => {
                     td.textContent = STATES.event?.participants?.[i].queue_code
                     break
                 case 3:
-                    td.style.color = STATES.event?.participants?.[i].status == 0 ? "gray" : "green"
-                    td.textContent = STATES.event?.participants?.[i].status == 0 ? "Waiting" : "Served"
+                    td.style.color = !STATES.event?.participants?.[i].serve_by_booth ? "gray" : STATES.event?.participants?.[i].status == 0 ? "green" : "white"
+                    td.textContent = !STATES.event?.participants?.[i].serve_by_booth ? "Waiting" : STATES.event?.participants?.[i].status == 0 ? "Being Served" : "Served"
                     break
             }
             tr.appendChild(td)
@@ -363,7 +364,8 @@ const createTableEventCounters = () => {
                     td.textContent = STATES.event?.counters?.[i].counter_code
                     break
                 case 2:
-                    td.textContent = STATES.event?.counters?.[i].status == 0 ? "Inactive" : "Active"
+                    td.style.color = STATES.event?.counters?.[i].status == 0 ? "gray" : "green"
+                    td.textContent = STATES.event?.counters?.[i].status == 0 ? "Offline" : "Online"
                     break
             }
             tr.appendChild(td)
@@ -409,7 +411,8 @@ const createTableEventBooths = () => {
                     td.textContent = STATES.event?.booths?.[i].booth_code
                     break
                 case 2:
-                    td.textContent = STATES.event?.booths?.[i].status == 0 ? "Inactive" : "Active"
+                    td.style.color = STATES.event?.booths?.[i].status == 0 ? "gray" : "green"
+                    td.textContent = STATES.event?.booths?.[i].status == 0 ? "Offline" : "Online"
                     break
             }
             tr.appendChild(td)
@@ -622,6 +625,11 @@ const renderScreen = (_title, content) => {
         rotation: "bx-rotate-180",
         onClick: handlerCreateEvent
     })
+    const btnExport = createButton({
+        ic: "bx-export",
+        rotation: "bx-rotate-180",
+        onClick: handlerExportEvent
+    })
     const btnLogout = createButton({
         text: "Log out",
         ic: "bx-log-out-circle",
@@ -637,7 +645,7 @@ const renderScreen = (_title, content) => {
     logo.classList.add('logo')
     titleWrapper.classList.add('title-wrapper')
 
-    logo.src = '/icons/ic-app.png'
+    logo.src = '/icons/ic-ce.png'
     title.textContent = _title ? _title : STATES.activeTab == 0 ? "Dashboard" : "Events"
 
     titleWrapper.appendChild(title);
@@ -648,6 +656,7 @@ const renderScreen = (_title, content) => {
 
     header.appendChild(logo)
     header.appendChild(titleWrapper)
+    if (STATES.event) header.appendChild(btnExport)
     if (STATES.activeTab == 1) header.appendChild(btnAdd)
 
     sideBarBtnWrapper.appendChild(btnDashbaord)
@@ -655,10 +664,11 @@ const renderScreen = (_title, content) => {
     sideBar.appendChild(sideBarBtnWrapper)
     sideBar.appendChild(btnLogout)
 
-    bodyContent.appendChild(sideBar)
-    bodyContent.appendChild(wrapper)
     root.appendChild(header)
     root.appendChild(bodyContent)
+    const bh = bodyContent.clientHeight
+    bodyContent.appendChild(sideBar)
+    bodyContent.appendChild(wrapper)
 
     if (STATES.activeTab == 1) {
         $(document).ready(function() {
@@ -680,16 +690,14 @@ const renderScreen = (_title, content) => {
         $('#participants-table').DataTable({
             responsive: true,
             paging: true,
-            lengthChange: false,
-            searching: false,
-            scrollY: wrapper.clientHeight*.8
-        } );
+            scrollY: bh * .73,
+        });
         $('#counters-table').DataTable({
             responsive: true,
             paging: false,
             lengthChange: false,
             searching: false,
-            scrollY: wrapper.clientHeight * .85,
+            scrollY: bh * .7,
             info: false
         });
         $('#booths-table').DataTable({
@@ -697,7 +705,7 @@ const renderScreen = (_title, content) => {
             paging: false,
             lengthChange: false,
             searching: false,
-            scrollY: wrapper.clientHeight * .85,
+            scrollY: bh * .7,
             info: false
         });
     }

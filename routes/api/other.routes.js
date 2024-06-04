@@ -52,6 +52,17 @@ const routes = [
     },
     {
         method: FETCH_REQUEST_TYPES.GET,
+        path: '/images/{param*}',
+        handler: {
+            directory: {
+                path: './images/',
+                redirectToSlash: true,
+                index: true,
+            }
+        }
+    },
+    {
+        method: FETCH_REQUEST_TYPES.GET,
         path: '/sounds/{param*}',
         handler: {
             directory: {
@@ -63,7 +74,7 @@ const routes = [
     },
     {
         method: FETCH_REQUEST_TYPES.GET,
-        path: '/liveQueue/{id}',
+        path: '/live-queue/{id}',
         handler: (h, r) => {
             return r.file(Path.join(__dirname, '../../public/files/live_queue.html'))
         }
