@@ -2,6 +2,7 @@
 
 const socket = io();
 const root = document.getElementById('root')
+const eventId = window.location.pathname.split('/')[2]
 const soundCalls = {
     "a": document.getElementById('s-call-1'),
     "b": document.getElementById('s-call-2'),
@@ -85,7 +86,7 @@ const handlerGetEvent = async () => {
 
     console.log("Get event ...")
 
-   fetch(`/api/event/code/${window.location.pathname.split('/')[2]}`)
+   fetch(`/api/event/code/${eventId}`)
     .then(res => res.json())
     .then(res => {
         STATES.event = res?.data

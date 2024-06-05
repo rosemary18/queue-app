@@ -2,6 +2,7 @@
 
 const socket = io();
 const root = document.getElementById('root')
+const eventId = window.location.pathname.split('/')[2]
 const STATES = {
     event: {},
     booth: {},
@@ -12,6 +13,9 @@ const STATES = {
 // Cycles
 
 const handlerOnLoad = () => {
+    socket.on('connect', function () { 
+        if (localStorage.getItem('booth_pass') && localStorage.getItem('booth_code')) handlerAuthenticate()
+    })
     socket.on('queue-updated', handlerGetAllQueues);
     socket.on('participant-updated', handlerGetAllQueues);
 }
@@ -29,21 +33,21 @@ const Start = async () => {
 
 const handlerAuthenticate = async () => {
     
-    const inputEventCode = document.getElementById('input-event-code')
-    const inputBoothPass = document.getElementById('input-booth-pass')
-    const inputBoothCode = document.getElementById('input-booth-code')
+    let inputBoothPass = document.getElementById('input-booth-pass').value
+    let inputBoothCode = document.getElementById('input-booth-code').value
+    const sBoothPass = localStorage.getItem('booth_pass')
+    const sBoothCode = localStorage.getItem('booth_code')
 
-    if (!inputEventCode.value) return alert('Fill your Event Code');
-    if (!inputBoothCode.value) return alert('Fill your Booth Code');
-    if (!inputBoothPass.value) return alert('Fill your Booth Pass');
+    if (sBoothPass) inputBoothPass = sBoothPass
+    if (sBoothCode) inputBoothCode = sBoothCode
+
+    if (!inputBoothCode) return alert('Fill your Booth Code');
+    if (!inputBoothPass) return alert('Fill your Booth Pass');
 
     const body = {
-        // "event_code": "y26qOAHVVIaT",
-        // "booth_code": "A",
-        // "event_booth_pass": "T096Zv4dZ8K6",
-        "event_code": inputEventCode.value,
-        "booth_code": inputBoothCode.value?.toUpperCase(),
-        "event_booth_pass": inputBoothPass.value,
+        "event_code": eventId,
+        "booth_code": inputBoothCode?.toUpperCase(),
+        "event_booth_pass": inputBoothPass,
         "socket_id": socket?.id
     }
 
@@ -63,7 +67,9 @@ const handlerAuthenticate = async () => {
             STATES.event = res.data?.event
             STATES.queue = res.data?.queue
             await handlerGetAllQueues()
-            alert(`Sign Success! Welcome Booth ${inputBoothCode.value}`)
+            alert(`Sign Success! Welcome Booth ${inputBoothCode}`)
+            localStorage.setItem('booth_pass', inputBoothPass)
+            localStorage.setItem('booth_code', inputBoothCode)
         } else alert(res?.message)
     }).catch(err => {
         console.log(err)
@@ -184,7 +190,6 @@ const renderAuth = () => {
 
     const container = document.createElement('div')
     const title = document.createElement('h1')
-    const inputEventCode = createInput("input-event-code", "Event Code")
     const inputBoothPass = createInput("input-booth-pass", "Booth Pass")
     const inputBoothCode = createInput("input-booth-code", "Booth Code")
     const btnSign = document.createElement('button')
@@ -203,7 +208,6 @@ const renderAuth = () => {
     container.style.justifyContent = 'center'
 
     container.appendChild(title)
-    container.appendChild(inputEventCode)
     container.appendChild(inputBoothPass)
     container.appendChild(inputBoothCode)
     container.appendChild(btnSign)
@@ -355,7 +359,11 @@ const renderScreen = () => {
     const title = document.createElement('h1')
     const btnLogout = createButton({
         ic: "bx-log-out-circle",
-        onClick: () => window.location.href = "/",
+        onClick: async () => {
+            await localStorage.removeItem('booth_pass');
+            await localStorage.removeItem('booth_code');
+            window.location.reload()
+        },
     })
 
     header.classList.add('header')

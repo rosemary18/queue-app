@@ -1,6 +1,7 @@
 // States
 
 const root = document.getElementById('root')
+const eventId = window.location.pathname.split('/')[2]
 const STATES = {
     event: {},
     counter: {},
@@ -17,6 +18,7 @@ const handlerOnLoad = () => {
 
     socket.on('connect', function () {
         STATES.socket_id = socket.id
+        if (localStorage.getItem('counter_pass') && localStorage.getItem('counter_code')) handlerAuthenticate()
     });
     socket.on('queue-updated', handlerGetEvent);
     socket.on('event-updated', handlerGetEvent);
@@ -28,7 +30,6 @@ const handlerUnLoad = () => {
 }
 
 const Start = async () => {
-
     renderAuth()
 }
 
@@ -36,23 +37,25 @@ const Start = async () => {
 
 const handlerAuthenticate = async () => {
     
-    const inputEventCode = document.getElementById('input-event-code')
-    const inputCounterPass = document.getElementById('input-counter-pass')
-    const inputCounterCode = document.getElementById('input-counter-code')
+    let inputCounterPass = document.getElementById('input-counter-pass')?.value
+    let inputCounterCode = document.getElementById('input-counter-code')?.value
+    const sCounterPass = localStorage.getItem('counter_pass')
+    const sCounterCode = localStorage.getItem('counter_code')
 
-    if (!inputEventCode.value) return alert('Fill your Event Code');
-    if (!inputCounterCode.value) return alert('Fill your Counter Code');
-    if (!inputCounterPass.value) return alert('Fill your Counter Pass');
+    if (sCounterPass) inputCounterPass = sCounterPass
+    if (sCounterCode) inputCounterCode = sCounterCode
+
+    if (!inputCounterCode) return alert('Fill your Counter Code');
+    if (!inputCounterPass) return alert('Fill your Counter Pass');
 
     const body = {
-        // "event_code": "XKkQ53xYJHas",
-        // "counter_code": "A01",
-        // "event_counter_pass": "X4KNqhfjN17Z",
-        "event_code": inputEventCode.value,
-        "counter_code": inputCounterCode.value?.toUpperCase(),
-        "event_counter_pass": inputCounterPass.value,
+        "event_code": eventId,
+        "counter_code": inputCounterCode?.toUpperCase(),
+        "event_counter_pass": inputCounterPass,
         "socket_id": STATES.socket_id
     }
+
+    console.log(body)
 
     fetch('/api/signin/counter', {
         method: 'POST',
@@ -68,8 +71,10 @@ const handlerAuthenticate = async () => {
             STATES.counter = res.data?.counter
             STATES.event = res.data?.event
             await handlerGetParticipants()
-            alert(`Sign Success! Welcome Counter ${inputCounterCode.value}`)
+            alert(`Sign Success! Welcome Counter ${inputCounterCode}`)
             renderScreen()
+            localStorage.setItem('counter_pass', inputCounterPass)
+            localStorage.setItem('counter_code', inputCounterCode)
         } else alert(res?.message)
     }).catch(err => {
         console.log(err)
@@ -311,7 +316,6 @@ const renderAuth = () => {
 
     const container = document.createElement('div')
     const title = document.createElement('h1')
-    const inputEventCode = createInput("input-event-code", "Event Code")
     const inputCounterPass = createInput("input-counter-pass", "Counter Pass")
     const inputCounterCode = createInput("input-counter-code", "Counter Code")
     const btnSign = document.createElement('button')
@@ -330,7 +334,6 @@ const renderAuth = () => {
     container.style.justifyContent = 'center'
 
     container.appendChild(title)
-    container.appendChild(inputEventCode)
     container.appendChild(inputCounterPass)
     container.appendChild(inputCounterCode)
     container.appendChild(btnSign)
@@ -514,7 +517,11 @@ const renderScreen = () => {
     const title = document.createElement('h1')
     const btnLogout = createButton({
         ic: "bx-log-out-circle",
-        onClick: () => window.location.href = "/",
+        onClick: async () => {
+            await localStorage.removeItem('counter_pass');
+            await localStorage.removeItem('counter_code');
+            window.location.reload()
+        },
     })
 
     header.classList.add('header')

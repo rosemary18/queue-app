@@ -14,7 +14,7 @@ const routes = [
         method: FETCH_REQUEST_TYPES.GET,
         path: '/',
         handler: (h, r) => {
-            return r.file(Path.join(__dirname, '../../public/files/index.html'))
+            return r.file(Path.join(__dirname, '../../public/files/admin.html'))
         }
     },
     {
@@ -81,21 +81,14 @@ const routes = [
     },
     {
         method: FETCH_REQUEST_TYPES.GET,
-        path: '/admin',
-        handler: (h, r) => {
-            return r.file(Path.join(__dirname, '../../public/files/admin.html'))
-        }
-    },
-    {
-        method: FETCH_REQUEST_TYPES.GET,
-        path: '/booth',
+        path: '/booth/{id}',
         handler: (h, r) => {
             return r.file(Path.join(__dirname, '../../public/files/booth.html'))
         }
     },
     {
         method: FETCH_REQUEST_TYPES.GET,
-        path: '/counter',
+        path: '/counter/{id}',
         handler: (h, r) => {
             return r.file(Path.join(__dirname, '../../public/files/counter.html'))
         }

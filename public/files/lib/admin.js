@@ -1,6 +1,7 @@
 // States
 
 const root = document.getElementById('root')
+const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')) + '/';
 const STATES = {
     events: [],
     event: null,
@@ -284,7 +285,7 @@ const createTableEvent = () => {
 
 const createTableEventParticipants = () => {
 
-    const headers = ["No", "Name", "Queue Code", "Status"]
+    const headers = ["No", "Queue Code", "Name", "Status"]
 
     const table = document.createElement('table')
     const thead = document.createElement('thead')
@@ -311,10 +312,10 @@ const createTableEventParticipants = () => {
                     td.textContent = `${i + 1}`
                     break
                 case 1:
-                    td.textContent = STATES.event?.participants?.[i].name
+                    td.textContent = STATES.event?.participants?.[i].queue_code
                     break
                 case 2:
-                    td.textContent = STATES.event?.participants?.[i].queue_code
+                    td.textContent = STATES.event?.participants?.[i].name
                     break
                 case 3:
                     td.style.color = !STATES.event?.participants?.[i].serve_by_booth ? "gray" : STATES.event?.participants?.[i].status == 0 ? "green" : "white"
@@ -334,7 +335,7 @@ const createTableEventParticipants = () => {
 
 const createTableEventCounters = () => {
 
-    const headers = ["No", "Counter Code", "Status"]
+    const headers = ["Counter Code", "Status"]
 
     const table = document.createElement('table')
     const thead = document.createElement('thead')
@@ -358,12 +359,9 @@ const createTableEventCounters = () => {
             const td = document.createElement('td')
             switch (j) {
                 case 0:
-                    td.textContent = `${i + 1}`
-                    break
-                case 1:
                     td.textContent = STATES.event?.counters?.[i].counter_code
                     break
-                case 2:
+                case 1:
                     td.style.color = STATES.event?.counters?.[i].status == 0 ? "gray" : "green"
                     td.textContent = STATES.event?.counters?.[i].status == 0 ? "Offline" : "Online"
                     break
@@ -381,7 +379,7 @@ const createTableEventCounters = () => {
 
 const createTableEventBooths = () => {
 
-    const headers = ["No", "Booth Code", "Status"]
+    const headers = ["Booth Code", "Status"]
 
     const table = document.createElement('table')
     const thead = document.createElement('thead')
@@ -405,12 +403,9 @@ const createTableEventBooths = () => {
             const td = document.createElement('td')
             switch (j) {
                 case 0:
-                    td.textContent = `${i + 1}`
-                    break
-                case 1:
                     td.textContent = STATES.event?.booths?.[i].booth_code
                     break
-                case 2:
+                case 1:
                     td.style.color = STATES.event?.booths?.[i].status == 0 ? "gray" : "green"
                     td.textContent = STATES.event?.booths?.[i].status == 0 ? "Offline" : "Online"
                     break
@@ -498,7 +493,7 @@ const renderEvent = () => {
     detailTitle.textContent = "Event Details"
     detailContainer.appendChild(detailTitle)
     
-    for (let index = 0; index < 6; index++) {
+    for (let index = 0; index < 9; index++) {
         const _container = document.createElement('div')
         const detailText = document.createElement('p')
         const detailTextValue = document.createElement('p')
@@ -514,29 +509,56 @@ const renderEvent = () => {
         _container.style.margin = "6px 0"
         switch (index) {
             case 0:
-                detailText.textContent = `Event Name :`
+                detailText.textContent = `Name :`
                 detailTextValue.textContent = `${STATES.event?.event_name}`
                 break
             case 1:
-                detailText.textContent = `Event Code :`
+                detailText.textContent = `Code :`
                 detailTextValue.textContent = `${STATES.event?.event_code}`
                 detailTextValue.style.color = "#5233FFF6"
                 break
             case 2:
-                detailText.textContent = `Event Counter Pass :`
+                detailText.textContent = `Counter Pass :`
                 detailTextValue.textContent = `${STATES.event?.event_counter_pass}`
                 detailTextValue.style.color = "#5233FFF6"
                 break
             case 3:
-                detailText.textContent = `Event Booth Pass :`
+                detailText.textContent = `Booth Pass :`
                 detailTextValue.textContent = `${STATES.event?.event_booth_pass}`
                 detailTextValue.style.color = "#5233FFF6"
                 break
             case 4:
+                detailText.textContent = `Counter link: `
+                detailTextValue.style.color = "#5233FFF6"
+                detailTextValue.style.fontSize = "10px"
+                detailTextValue.textContent = `${baseUrl}counter/${STATES.event?.event_code}`
+                detailTextValue.style.textDecoration = "underline"
+                detailTextValue.style.cursor = "pointer"
+                detailTextValue.onclick = () => window.open(`/counter/${STATES.event?.event_code}`)
+                break
+            case 5:
+                detailText.textContent = `Booth link: `
+                detailTextValue.style.color = "#5233FFF6"
+                detailTextValue.style.fontSize = "10px"
+                detailTextValue.textContent = `${baseUrl}booth/${STATES.event?.event_code}`
+                detailTextValue.style.textDecoration = "underline"
+                detailTextValue.style.cursor = "pointer"
+                detailTextValue.onclick = () => window.open(`/booth/${STATES.event?.event_code}`)
+                break
+            case 6:
+                detailText.textContent = `Live queues link: `
+                detailTextValue.style.color = "#5233FFF6"
+                detailTextValue.style.fontSize = "10px"
+                detailTextValue.textContent = `${baseUrl}live-queue/${STATES.event?.event_code}`
+                detailTextValue.style.textDecoration = "underline"
+                detailTextValue.style.cursor = "pointer"
+                detailTextValue.onclick = () => window.open(`/live-queue/${STATES.event?.event_code}`)
+                break
+            case 7:
                 detailText.textContent = `Updated At :`
                 detailTextValue.textContent = `${dateFns?.format(new Date(STATES.event?.updated_at), 'dd-MM-yyyy HH:mm')}`
                 break
-            case 5:
+            case 8:
                 detailText.textContent = `Created At :`
                 detailTextValue.textContent = `${dateFns?.format(new Date(STATES.event?.created_at), 'dd-MM-yyyy HH:mm')}`
                 break
@@ -630,12 +652,6 @@ const renderScreen = (_title, content) => {
         rotation: "bx-rotate-180",
         onClick: handlerExportEvent
     })
-    const btnLogout = createButton({
-        text: "Log out",
-        ic: "bx-log-out-circle",
-        rotation: "bx-rotate-180",
-        onClick: () => window.location.href = "/",
-    })
 
     header.classList.add('header')
     bodyContent.classList.add('body-content')
@@ -662,7 +678,6 @@ const renderScreen = (_title, content) => {
     sideBarBtnWrapper.appendChild(btnDashbaord)
     sideBarBtnWrapper.appendChild(btnEvent)
     sideBar.appendChild(sideBarBtnWrapper)
-    sideBar.appendChild(btnLogout)
 
     root.appendChild(header)
     root.appendChild(bodyContent)
