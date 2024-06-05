@@ -70,7 +70,11 @@ const handlerAuthenticate = async () => {
             alert(`Sign Success! Welcome Booth ${inputBoothCode}`)
             localStorage.setItem('booth_pass', inputBoothPass)
             localStorage.setItem('booth_code', inputBoothCode)
-        } else alert(res?.message)
+        } else {
+            localStorage.removeItem('booth_pass')
+            localStorage.removeItem('booth_code')
+            alert(res?.message)
+        }
     }).catch(err => {
         console.log(err)
         alert(err)

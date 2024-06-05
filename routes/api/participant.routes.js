@@ -49,7 +49,7 @@ const handlerGetParticipant = async (req, res) => {
 const handlerGetParticipantByEventId = async (req, res) => {
 
     const eventId = req.params.id;
-    const sql_participants = `SELECT * FROM tbl_participants WHERE event_id = ?`;
+    const sql_participants = `SELECT * FROM tbl_participants WHERE event_id = ? ORDER BY queue_code DESC`;
     const participants = await new Promise((resolve, reject) => {
         db.all(sql_participants, [eventId], function (err, rows) {
             if (err) {
@@ -82,7 +82,7 @@ const handlerGetParticipantByCounterId= async (req, res) => {
 
 const handlerAddParticipant = async (req, res) => {
 
-    const { counter_id, queue_code, name, phone_number } = req.payload;
+    const { counter_id, name, phone_number } = req.payload;
 
     const sql_counter = `SELECT * FROM tbl_counters WHERE id = ?`;
     const counter = await new Promise((resolve, reject) => {
@@ -110,22 +110,21 @@ const handlerAddParticipant = async (req, res) => {
 
     if (!event) return res.response(RES_TYPES[404]("Event not found"));
 
-    const sql_check_queue = `SELECT * FROM tbl_participants WHERE event_id = ? AND queue_code = ?`;
-    const check_queue = await new Promise((resolve, reject) => {
-        db.get(sql_check_queue, [event.id, queue_code], function (err, row) {
+    const sql_get_all_participant = `SELECT * FROM tbl_participants WHERE event_id = ? ORDER BY queue_code DESC`;
+    const all_participant = await new Promise((resolve, reject) => {
+        db.all(sql_get_all_participant, [event.id], function (err, rows) {
             if (err) {
                 console.log(err);
                 return reject(new Error('Database query error'));
             }
-            resolve(row);
+            resolve(rows);
         });
     })
 
-    if (check_queue) return res.response(RES_TYPES[400]("Queue already exist"));
-
+    const next_queue_code = all_participant?.length > 0 ? `000${parseInt(all_participant[0].queue_code) + 1}`.slice(-4) : "0001";
     const sql_participant = `INSERT INTO tbl_participants (event_id, queue_code, name, phone_number, ticket_link, input_by_counter) VALUES (?, ?, ?, ?, ?, ?)`;
     const newParticipantID = await new Promise((resolve, reject) => {
-        db.run(sql_participant, [event.id, queue_code, name, phone_number, '', counter_id], function (err) {
+        db.run(sql_participant, [event.id, next_queue_code, name, phone_number, '', counter_id], function (err) {
             if (err) {
                 console.log(err);
                 return reject(new Error('Database query error'));
@@ -136,7 +135,7 @@ const handlerAddParticipant = async (req, res) => {
 
     if (!newParticipantID) return res.response(RES_TYPES[500]());
     else {
-        const id_queue = await generateQueueImage(queue_code);
+        const id_queue = await generateQueueImage(next_queue_code);
         if (id_queue != null) {
             const sql_update_participant = `UPDATE tbl_participants SET ticket_link = ? WHERE id = ?`;
             const protocol = req.server.info.protocol;
@@ -152,7 +151,7 @@ const handlerAddParticipant = async (req, res) => {
                     resolve(true);
                 });
             })
-            let isSent = await sendWa(link_image, queue_code, phone_number)
+            let isSent = await sendWa(link_image, phone_number)
             if (isSent) {
                 const sql_update_wa_status = `UPDATE tbl_participants SET wa_sent_status = ? WHERE id = ?`;
                 await new Promise((resolve, reject) => {
@@ -253,7 +252,7 @@ const handlerResendWA = async (req, res) => {
 
     if (!participant) return res.response(RES_TYPES[404]("Participant not found"));
 
-    let isSent = sendWa(participant.ticket_link, participant.queue_code, participant.phone_number)
+    let isSent = sendWa(participant.ticket_link, participant.phone_number)
 
     if (!isSent) return res.response(RES_TYPES[404]("WA sent failed"));
 
@@ -318,7 +317,6 @@ const routes = [
             validate: {
                 payload: Joi.object({
                     counter_id: Joi.string().required(),
-                    queue_code: Joi.string().required(),
                     name: Joi.string().required(),
                     phone_number: Joi.string().required(),
                 })

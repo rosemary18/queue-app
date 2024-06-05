@@ -71,11 +71,15 @@ const handlerAuthenticate = async () => {
             STATES.counter = res.data?.counter
             STATES.event = res.data?.event
             await handlerGetParticipants()
-            alert(`Sign Success! Welcome Counter ${inputCounterCode}`)
+            alert(`Sign Success! Welcome Registrant ${inputCounterCode}`)
             renderScreen()
             localStorage.setItem('counter_pass', inputCounterPass)
             localStorage.setItem('counter_code', inputCounterCode)
-        } else alert(res?.message)
+        } else {
+            localStorage.removeItem('counter_pass')
+            localStorage.removeItem('counter_code')
+            alert(res?.message)
+        }
     }).catch(err => {
         console.log(err)
         alert(err)
@@ -85,7 +89,7 @@ const handlerAuthenticate = async () => {
 const handlerGetParticipants = async () => {
 
     if (STATES.counter) {
-        await fetch(`/api/participant/counter/${STATES.counter?.id}`, { method: 'GET' })
+        await fetch(`/api/participant/event/${STATES.event?.id}`, { method: 'GET' })
         .then(res => res.json())
         .then( async res => {
             if (res?.statusCode == 200) {
@@ -123,17 +127,14 @@ const handlerGetEvent = async () => {
 
 const handlerAddParticipant = () => {
 
-    const inputQueueCode = document.getElementById('input-queue-code')
     const inputName = document.getElementById('input-name')
     const inputPhoneNumber = document.getElementById('input-phone-number')
 
-    if (!inputQueueCode.value) return alert('Invalid Queue Code!');
     if (!inputName.value) return alert('Fill Participant Name!');
     if (!inputPhoneNumber.value) return alert('Fill Phone Number');
 
     const body = {
         "counter_id": `${STATES.counter?.id}`,
-        "queue_code": inputQueueCode.value,
         "name": inputName.value,
         "phone_number": inputPhoneNumber.value
     }
@@ -149,7 +150,7 @@ const handlerAddParticipant = () => {
     .then(res => res.json())
     .then( async res => {
         if (res?.statusCode == 200) {
-            alert(`Queues ${inputQueueCode.value} Added!`)
+            alert(`New queue added!`)
             await handlerGetParticipants()
             renderScreen()
         } else alert(res?.message)
@@ -161,11 +162,9 @@ const handlerAddParticipant = () => {
 
 const handlerUpdateParticipant = () => {
 
-    const inputQueueCode = document.getElementById('input-queue-code')
     const inputName = document.getElementById('input-name')
     const inputPhoneNumber = document.getElementById('input-phone-number')
 
-    if (!inputQueueCode.value) return alert('Invalid Queue Code!');
     if (!inputName.value) return alert('Fill Participant Name!');
     if (!inputPhoneNumber.value) return alert('Fill Phone Number');
 
@@ -262,7 +261,10 @@ const createInput = (id, _label, width = "24em", value, disabled) => {
     label.classList.add("form__label")
 
     if (width) container.style.width = width
-    if (disabled) input.disabled = true
+    if (disabled) {
+        input.disabled = true
+        input.style.borderBottom = "0px"
+    }
     if (value) input.value = value
 
     input.id = id
@@ -316,8 +318,8 @@ const renderAuth = () => {
 
     const container = document.createElement('div')
     const title = document.createElement('h1')
-    const inputCounterPass = createInput("input-counter-pass", "Counter Pass")
-    const inputCounterCode = createInput("input-counter-code", "Counter Code")
+    const inputCounterPass = createInput("input-counter-pass", "Registrant Pass")
+    const inputCounterCode = createInput("input-counter-code", "Registrant Code")
     const btnSign = document.createElement('button')
 
     title.classList.add('title-form', 'animate__heartBeat')
@@ -455,7 +457,7 @@ const renderForm = () => {
 
     const container = document.createElement('div')
     const title = document.createElement('h1')
-    const inputQueueCode = createInput("input-queue-code", "Queue Code", "24em", STATES.participant?.queue_code ?? handlerGetNextQueue(), true)
+    const inputQueueCode = createInput("input-queue-code", "Queue Code", "24em", STATES.participant?.queue_code, true)
     const inputName = createInput("input-name", "Name", "24em", STATES.participant?.name ?? "")
     const inputPhoneNumber = createInput("input-phone-number", "Phone Number", "24em", STATES.participant?.phone_number ?? "62")
     const btnContainer = document.createElement('div')
@@ -485,7 +487,7 @@ const renderForm = () => {
 
     if (STATES.participant != null) btnContainer.appendChild(btnCancel)
     btnContainer.appendChild(btnSubmit)
-    container.appendChild(inputQueueCode)
+    if (STATES.participant != null) container.appendChild(inputQueueCode)
     container.appendChild(inputName)
     container.appendChild(inputPhoneNumber)
     form.innerHTML = ""
@@ -537,7 +539,7 @@ const renderScreen = () => {
     divider.style.backgroundColor = "#7C7C7C"
 
     logo.src = '/icons/ic-ce.png'
-    title.textContent = `Counter - ${STATES.counter?.counter_code}`
+    title.textContent = `Registrant - ${STATES.counter?.counter_code}`
 
     tableContainer.id = "table-container"
     form.id = "form"

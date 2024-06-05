@@ -1,7 +1,7 @@
 const axios = require('axios');
 const FormData = require('form-data');
 
-const sendWa = async (ticket_link, queue_code, phone_number) => {
+const sendWa = async (ticket_link, phone_number) => {
 
     const link = "https://api.fonnte.com/send"
     const token = ["SVPEWKZo_CzuXdU_VuN2"]
@@ -9,7 +9,7 @@ const sendWa = async (ticket_link, queue_code, phone_number) => {
 
     const body = new FormData();
     body.append("target", phone_number)
-    body.append("message", `Halo, nomor antrian anda dengan kode ${queue_code}.\nTerima kasih.`)
+    body.append("message", `Hai, berikut digital tiket antrian layanan paspor anda, terima kasih.`)
     body.append("url", ticket_link)
     body.append("schedule", "0")
     body.append("delay", "2")

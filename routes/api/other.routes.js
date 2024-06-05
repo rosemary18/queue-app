@@ -88,7 +88,7 @@ const routes = [
     },
     {
         method: FETCH_REQUEST_TYPES.GET,
-        path: '/counter/{id}',
+        path: '/registrant/{id}',
         handler: (h, r) => {
             return r.file(Path.join(__dirname, '../../public/files/counter.html'))
         }

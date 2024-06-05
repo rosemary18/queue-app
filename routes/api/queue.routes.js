@@ -73,9 +73,6 @@ const handlerNextQueue = async (req, res) => {
     
     if (!booth) return res.response(RES_TYPES[404]("Booth not found"));
 
-    console.log(booth)
-    console.log(booth_id)
-
     // Get participant that served by this booth but status is 0
     const sql_participant = `SELECT * FROM tbl_participants WHERE serve_by_booth = ? AND status = 0 ORDER BY id ASC LIMIT 1`;
     const participant = await new Promise((resolve, reject) => {

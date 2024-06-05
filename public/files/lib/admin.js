@@ -212,7 +212,7 @@ const createButton = ({ text, ic, color = "white", size = "bx-xs", active = fals
 
 const createTableEvent = () => {
 
-    const headers = ["No", "Event Name", "Queues", "Counters", "Booths", "Date", "Actions"]
+    const headers = ["No", "Event Name", "Queues", "Registrants", "Booths", "Date", "Actions"]
 
     const table = document.createElement('table')
     const thead = document.createElement('thead')
@@ -245,7 +245,7 @@ const createTableEvent = () => {
                     td.textContent = STATES.events[i]?.participants?.length + " Queues"
                     break
                 case 3:
-                    td.textContent = STATES.events[i]?.counters?.length + " Counters"
+                    td.textContent = STATES.events[i]?.counters?.length + " Registrants"
                     break
                 case 4:
                     td.textContent = STATES.events[i]?.booths?.length + " Booths"
@@ -335,7 +335,7 @@ const createTableEventParticipants = () => {
 
 const createTableEventCounters = () => {
 
-    const headers = ["Counter Code", "Status"]
+    const headers = ["Registrant Code", "Status"]
 
     const table = document.createElement('table')
     const thead = document.createElement('thead')
@@ -518,7 +518,7 @@ const renderEvent = () => {
                 detailTextValue.style.color = "#5233FFF6"
                 break
             case 2:
-                detailText.textContent = `Counter Pass :`
+                detailText.textContent = `Registrant Pass :`
                 detailTextValue.textContent = `${STATES.event?.event_counter_pass}`
                 detailTextValue.style.color = "#5233FFF6"
                 break
@@ -528,18 +528,20 @@ const renderEvent = () => {
                 detailTextValue.style.color = "#5233FFF6"
                 break
             case 4:
-                detailText.textContent = `Counter link: `
+                detailText.textContent = `Registrant link: `
                 detailTextValue.style.color = "#5233FFF6"
                 detailTextValue.style.fontSize = "10px"
-                detailTextValue.textContent = `${baseUrl}counter/${STATES.event?.event_code}`
+                detailTextValue.style.textAlign = "right"
+                detailTextValue.textContent = `${baseUrl}registrant/${STATES.event?.event_code}`
                 detailTextValue.style.textDecoration = "underline"
                 detailTextValue.style.cursor = "pointer"
-                detailTextValue.onclick = () => window.open(`/counter/${STATES.event?.event_code}`)
+                detailTextValue.onclick = () => window.open(`/registrant/${STATES.event?.event_code}`)
                 break
             case 5:
                 detailText.textContent = `Booth link: `
                 detailTextValue.style.color = "#5233FFF6"
                 detailTextValue.style.fontSize = "10px"
+                detailTextValue.style.textAlign = "right"
                 detailTextValue.textContent = `${baseUrl}booth/${STATES.event?.event_code}`
                 detailTextValue.style.textDecoration = "underline"
                 detailTextValue.style.cursor = "pointer"
@@ -549,6 +551,7 @@ const renderEvent = () => {
                 detailText.textContent = `Live queues link: `
                 detailTextValue.style.color = "#5233FFF6"
                 detailTextValue.style.fontSize = "10px"
+                detailTextValue.style.textAlign = "right"
                 detailTextValue.textContent = `${baseUrl}live-queue/${STATES.event?.event_code}`
                 detailTextValue.style.textDecoration = "underline"
                 detailTextValue.style.cursor = "pointer"
