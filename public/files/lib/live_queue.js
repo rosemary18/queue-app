@@ -6,7 +6,6 @@ const eventId = window.location.pathname.split('/')[2]
 const soundCalls = {
     "a": document.getElementById('s-call-1'),
     "b": document.getElementById('s-call-2'),
-    "c": document.getElementById('s-call-3'),
 }
 const soundChars = {
     "a": document.getElementById('s-a'),
@@ -130,6 +129,10 @@ const playSounds = async (sounds) => {
 
 const handlerSpeak = (data) => {
 
+    console.log("Speak ... :", data)
+    console.log(soundChars)
+    console.log(soundNumerics)
+
     if (STATES.speaking) return
 
     STATES.speaking = true
@@ -141,17 +144,18 @@ const handlerSpeak = (data) => {
     for (let i = 0; i < queue_codes?.length; i++) {
         const code = queue_codes[i];
         if (Object.keys(soundChars).includes(code?.toLowerCase())) plays.push(soundChars[code?.toLowerCase()])
-        if (Object.keys(soundNumerics).includes(code)) plays.push(soundNumerics[code])
+        if (Object.keys(soundNumerics).includes(code?.toLowerCase())) plays.push(soundNumerics[code?.toLowerCase()])
     }
 
     plays.push(soundCalls["b"])
-    plays.push(soundCalls["c"])
 
     for (let j = 0; j < booth_codes?.length; j++) {
         const code = booth_codes[j];
         if (Object.keys(soundChars).includes(code?.toLowerCase())) plays.push(soundChars[code?.toLowerCase()])
         if (Object.keys(soundNumerics).includes(code)) plays.push(soundNumerics[code])
     }
+    
+    console.log(plays)
 
     playSounds(plays)
 }
@@ -240,8 +244,8 @@ const renderScreen = () => {
 
     headers.classList.add('queue-header')
 
-    row1.textContent = "ANTRIAN"
-    row2.textContent = "BOOTH"
+    row1.textContent = "ANTRIAN SELANJUTNYA"
+    row2.textContent = ""
 
     headers.appendChild(row1)
     headers.appendChild(row2)
@@ -249,29 +253,31 @@ const renderScreen = () => {
 
     for (let j = 0; j < STATES.queues?.length; j++) {
 
-        const queue = document.createElement('div')
-        const title = document.createElement('div')
-        const queueTitle = document.createElement('p')
-        const ic = document.createElement('i')
-        const boothTitle = document.createElement('p')
+        if (!(STATES.queues[j]?.serve_by_booth)) {
 
-        queue.classList.add('queue-container')
-        if (STATES.queues[j]?.serve_by_booth) ic.classList.add('bx', 'bx-chevron-right', 'bx-md')
-        else ic.classList.add('bx', 'bx-chevron-up', 'bx-md')
-        ic.style.color = '#0B4E9B'
-
-        title.style.display = 'flex'
-        title.style.flexDirection = 'row'
-        title.style.alignItems = 'center'
-
-        queueTitle.textContent = STATES.queues[j]?.queue_code
-        boothTitle.textContent = STATES.queues[j]?.booth?.booth_code ?? ""
-        
-        title.appendChild(ic)
-        title.appendChild(queueTitle)
-        queue.appendChild(title)
-        if (STATES.queues[j]?.serve_by_booth) queue.appendChild(boothTitle)
-        listMask.appendChild(queue)
+            const queue = document.createElement('div')
+            const title = document.createElement('div')
+            const queueTitle = document.createElement('p')
+            const ic = document.createElement('i')
+            const boothTitle = document.createElement('p')
+    
+            queue.classList.add('queue-container')
+            if (STATES.queues[j]?.serve_by_booth) ic.classList.add('bx', 'bx-chevron-right', 'bx-md')
+            else ic.classList.add('bx', 'bx-chevron-up', 'bx-md')
+            ic.style.color = '#0B4E9B'
+    
+            title.style.display = 'flex'
+            title.style.flexDirection = 'row'
+            title.style.alignItems = 'center'
+    
+            queueTitle.textContent = STATES.queues[j]?.queue_code
+            boothTitle.textContent = STATES.queues[j]?.booth?.booth_code ?? ""
+            
+            title.appendChild(ic)
+            title.appendChild(queueTitle)
+            queue.appendChild(title)
+            listMask.appendChild(queue)
+        }
     }
 
     root.innerHTML = ''
