@@ -71,7 +71,7 @@ const handlerAuthenticate = async () => {
             STATES.counter = res.data?.counter
             STATES.event = res.data?.event
             await handlerGetParticipants()
-            alert(`Sign Success! Welcome Registrant ${inputCounterCode}`)
+            alert(`Sign Success! Welcome Registration ${inputCounterCode}`)
             renderScreen()
             localStorage.setItem('counter_pass', inputCounterPass)
             localStorage.setItem('counter_code', inputCounterCode)
@@ -318,8 +318,8 @@ const renderAuth = () => {
 
     const container = document.createElement('div')
     const title = document.createElement('h1')
-    const inputCounterPass = createInput("input-counter-pass", "Registrant Pass")
-    const inputCounterCode = createInput("input-counter-code", "Registrant Code")
+    const inputCounterPass = createInput("input-counter-pass", "Registration Pass")
+    const inputCounterCode = createInput("input-counter-code", "Registration Code")
     const btnSign = document.createElement('button')
 
     title.classList.add('title-form', 'animate__heartBeat')
@@ -539,7 +539,7 @@ const renderScreen = () => {
     divider.style.backgroundColor = "#7C7C7C"
 
     logo.src = '/icons/ic-ce.png'
-    title.textContent = `Registrant - ${STATES.counter?.counter_code}`
+    title.textContent = `Registration - ${STATES.counter?.counter_code}`
 
     tableContainer.id = "table-container"
     form.id = "form"
