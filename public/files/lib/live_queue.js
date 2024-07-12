@@ -46,6 +46,17 @@ const soundNumerics = {
     "7": document.getElementById('s-7'),
     "8": document.getElementById('s-8'),
     "9": document.getElementById('s-9'),
+    "10": document.getElementById('s-10'),
+    "11": document.getElementById('s-11'),
+    "12": document.getElementById('s-12'),
+    "13": document.getElementById('s-13'),
+    "14": document.getElementById('s-14'),
+    "15": document.getElementById('s-15'),
+    "16": document.getElementById('s-16'),
+    "17": document.getElementById('s-17'),
+    "18": document.getElementById('s-18'),
+    "19": document.getElementById('s-19'),
+    "20": document.getElementById('s-20'),
 }
 
 const STATES = {
@@ -113,7 +124,18 @@ const playSounds = async (sounds) => {
         let play = false
         
         await new Promise(resolve => {
-            sounds[0].playbackRate = 1.3;
+            if (sounds[0]?.id == "s-10") sounds[0].playbackRate = .9;
+            else if (sounds[0]?.id == "s-11") sounds[0].playbackRate = .9;
+            else if (sounds[0]?.id == "s-12") sounds[0].playbackRate = .9;
+            else if (sounds[0]?.id == "s-13") sounds[0].playbackRate = .9;
+            else if (sounds[0]?.id == "s-14") sounds[0].playbackRate = .9;
+            else if (sounds[0]?.id == "s-15") sounds[0].playbackRate = .9;
+            else if (sounds[0]?.id == "s-16") sounds[0].playbackRate = .9;
+            else if (sounds[0]?.id == "s-17") sounds[0].playbackRate = .9;
+            else if (sounds[0]?.id == "s-18") sounds[0].playbackRate = .9;
+            else if (sounds[0]?.id == "s-19") sounds[0].playbackRate = .9;
+            else if (sounds[0]?.id == "s-20") sounds[0].playbackRate = .9;
+            else sounds[0].playbackRate = 1.3;
             sounds[0].play()
             sounds[0].addEventListener('ended', () => {
                 play = true
@@ -129,10 +151,6 @@ const playSounds = async (sounds) => {
 }
 
 const handlerSpeak = (data) => {
-
-    console.log("Speak ... :", data)
-    console.log(soundChars)
-    console.log(soundNumerics)
 
     if (STATES.speaking) return
 
@@ -150,13 +168,24 @@ const handlerSpeak = (data) => {
 
     plays.push(soundCalls["b"])
 
-    for (let j = 0; j < booth_codes?.length; j++) {
+    if (data?.booth_code == "10") plays.push(soundNumerics["10"])
+    else if (data?.booth_code == "11") plays.push(soundNumerics["11"])
+    else if (data?.booth_code == "12") plays.push(soundNumerics["12"])
+    else if (data?.booth_code == "13") plays.push(soundNumerics["13"])
+    else if (data?.booth_code == "14") plays.push(soundNumerics["14"])
+    else if (data?.booth_code == "15") plays.push(soundNumerics["15"])
+    else if (data?.booth_code == "16") plays.push(soundNumerics["16"])
+    else if (data?.booth_code == "17") plays.push(soundNumerics["17"])
+    else if (data?.booth_code == "18") plays.push(soundNumerics["18"])
+    else if (data?.booth_code == "19") plays.push(soundNumerics["19"])
+    else if (data?.booth_code == "20") plays.push(soundNumerics["20"])
+    else {
+        for (let j = 0; j < booth_codes?.length; j++) {
         const code = booth_codes[j];
-        if (Object.keys(soundChars).includes(code?.toLowerCase())) plays.push(soundChars[code?.toLowerCase()])
-        if (Object.keys(soundNumerics).includes(code)) plays.push(soundNumerics[code])
+            if (Object.keys(soundChars).includes(code?.toLowerCase())) plays.push(soundChars[code?.toLowerCase()])
+            if (Object.keys(soundNumerics).includes(code)) plays.push(soundNumerics[code])
+        }
     }
-    
-    console.log(plays)
 
     playSounds(plays)
 }
@@ -203,9 +232,11 @@ const renderContent = () => {
         titleDescImi1.classList.add('title-desc-imi-1')
         titleDescImi2.classList.add('title-desc-imi-2')
 
+        const sortedBooths = STATES.event?.booths?.sort((a, b) => a?.booth_code - b?.booth_code)
+
         for (let i = 0; i < 20; i++) {
 
-            const booth = STATES.event?.booths?.[i] || null
+            const booth = sortedBooths?.[i] || null
             const queue = booth ? STATES.queues?.find(queue => queue?.serve_by_booth == booth?.id) || null : null
 
             const gridItem = document.createElement('div')

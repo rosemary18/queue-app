@@ -81,11 +81,13 @@ const handlerAuthenticate = async () => {
     })
 }
 
-const handlerNextQueue = async () => {
+const handlerNextQueue = async (skip) => {
 
     const body = {
         "booth_id": `${STATES.booth?.id}`,
     }
+
+    if (skip) body.skip = true
 
     fetch('/api/queue/next', {
         method: 'POST',
@@ -255,6 +257,7 @@ const renderTable = () => {
 
     for (let i = 0; i < STATES.queues?.length; i++) {
         const tr = document.createElement('tr')
+        const queue = STATES.queues?.[i]
         for (let j = 0; j < headers.length; j++) {
             const td = document.createElement('td')
             const tdc = document.createElement("div")
@@ -263,11 +266,11 @@ const renderTable = () => {
             tdc.style.alignItems = "center"
             switch (j) {
                 case 0:
-                    td.textContent = STATES.queues?.[i].queue_code
+                    td.textContent = queue.queue_code
                     break
                 case 1:
-                    td.style.color = STATES.queues?.[i]?.serve_by_booth ? "green" : "gray"
-                    td.textContent = STATES.queues?.[i]?.serve_by_booth ? STATES.queues?.[i]?.booth?.booth_code : "Waiting"
+                    td.style.color = queue?.serve_by_booth ? "green" : "gray"
+                    td.textContent = queue?.serve_by_booth ? queue?.booth?.booth_code : "Waiting"
                     break
             }
             tr.appendChild(td)
@@ -308,10 +311,12 @@ const renderForm = () => {
     const inputPhoneNumber = createInput("input-phone-number", "Phone Number", "24em", STATES.queue?.phone_number ?? "", true)
     const btnContainer = document.createElement('div')
     const btnCall = document.createElement('button')
+    const btnSkip = document.createElement('button')
     const btnNext = document.createElement('button')
 
     title.classList.add('title-form')
     btnCall.classList.add('button-green')
+    btnSkip.classList.add('button-green')
     btnNext.classList.add('button')
 
     container.style.display = "flex"
@@ -329,9 +334,13 @@ const renderForm = () => {
 
     title.textContent = "Detail Queue"
     btnCall.textContent = "Call"
+    btnSkip.textContent = "Skip"
     btnNext.textContent = "Next Queue"
 
-    if (STATES.queue != null) btnContainer.appendChild(btnCall)
+    if (STATES.queue != null) {
+        btnContainer.appendChild(btnCall)
+        btnContainer.appendChild(btnSkip)
+    }
     btnContainer.appendChild(btnNext)
     container.appendChild(inputQueueCode)
     container.appendChild(inputName)
@@ -341,7 +350,12 @@ const renderForm = () => {
     form.appendChild(container)
     form.appendChild(btnContainer)
 
-    btnCall.onclick = () => socket?.emit(`call`, {booth_code: STATES.booth?.booth_code, queue_code: STATES.queue?.queue_code})
+    btnCall.onclick = () => socket?.emit(`call`, { booth_code: STATES.booth?.booth_code, queue_code: STATES.queue?.queue_code })
+    btnSkip.onclick = () => {
+        let confirmed = confirm(`Are you sure to skip queue ${STATES.queue?.queue_code} ?`)
+        if (!confirmed) return
+        handlerNextQueue(true)
+    }
     btnNext.onclick = () => {
         let confirmed = confirm(!STATES.queue ? "Are you ready?" : 'Are you sure to complete this queue?')
         if (!confirmed) return

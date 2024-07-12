@@ -103,7 +103,7 @@ const createPDF = async (event_name, participants) => {
     const page = pdfDoc.addPage([layout.width, layout.height]);
 
     // Data tabel
-    const data = [['No', 'Name', 'Phone Number', "Queue Code"]];
+    const data = [['No', 'Name', 'Phone Number', "Queue Code", "Status"]];
 
     for (let index = 0; index < participants?.length; index++) {
         const lines = []
@@ -111,6 +111,7 @@ const createPDF = async (event_name, participants) => {
         lines.push(participants[index].name)
         lines.push(participants[index].phone_number)
         lines.push(participants[index].queue_code)
+        lines.push(participants[index].status == 2 ? "SKIPPED" : participants[index].status == 1 ? "SERVED" : "-")
         data.push(lines)
     }
 
@@ -127,7 +128,7 @@ const createPDF = async (event_name, participants) => {
     const startX = 50;
     const startY = layout.height - 65;
     const rowHeight = 20;
-    const columnWidths = [30, (layout.widthContent-30) * .5, (layout.widthContent-30) * .3, (layout.widthContent-30) * .2];
+    const columnWidths = [30, (layout.widthContent-30) * .4, (layout.widthContent-30) * .25, (layout.widthContent-30) * .2, (layout.widthContent-30) * .15];
     const maxRowsPerPage = Math.floor((startY - 50) / rowHeight);
 
 

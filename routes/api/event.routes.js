@@ -136,6 +136,11 @@ const handlerGetEvent = async (req, res) => {
         newEvent.counters = JSON.parse(newEvent?.counters) ?? [];
         newEvent.booths = JSON.parse(newEvent?.booths) ?? [];
         newEvent.participants = JSON.parse(newEvent?.participants) ?? [];
+        if (newEvent.booths?.length > 0) newEvent.booths.sort((a, b) => {
+            if (a.booth_code < b.booth_code) return -1;
+            if (a.booth_code > b.booth_code) return 1;
+            return 0;
+        });
 
         // Kembalikan respons dengan data event yang baru dimasukkan
         return res.response(RES_TYPES[200](newEvent, 'Get event successfully'));
@@ -170,6 +175,12 @@ const handlerGetEventByCode = async (req, res) => {
         event.booths = JSON.parse(event?.booths) ?? [];
         event.participants = JSON.parse(event?.participants) ?? [];
 
+        if (event.booths?.length > 0) event.booths.sort((a, b) => {
+            if (a.booth_code < b.booth_code) return -1;
+            if (a.booth_code > b.booth_code) return 1;
+            return 0;
+        });
+
         // Kembalikan respons dengan data event yang baru dimasukkan
         return res.response(RES_TYPES[200](event, 'Get event successfully'));
     } catch (err) {
@@ -187,12 +198,21 @@ const handlerGetAllEvents = async (req, res) => {
                     console.log(err)
                     return reject(res.response(RES_TYPES[500](err)));
                 }
-                const result = rows.map(row => ({
-                    ...row,
-                    counters: JSON.parse(row.counters) ?? [],
-                    booths: JSON.parse(row.booths) ?? [],
-                    participants: row.participants ? JSON.parse(row.participants) : [],
-                }));
+                const result = rows.map(row => {
+                        const r = {
+                            ...row,
+                            counters: JSON.parse(row.counters) ?? [],
+                            booths: JSON.parse(row.booths) ?? [],
+                            participants: row.participants ? JSON.parse(row.participants) : [],
+                        }
+                        if (r.booths?.length > 0) r.booths.sort((a, b) => {
+                            if (a.booth_code < b.booth_code) return -1;
+                            if (a.booth_code > b.booth_code) return 1;
+                            return 0;
+                        });
+                        return r
+                    }
+                );
                 resolve(result || []);
             });
         })

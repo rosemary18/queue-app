@@ -175,17 +175,33 @@ const handlerAddParticipant = async (req, res) => {
 const handlerUpdateParticipant = async (req, res) => {
 
     const id = req.params.id;
-    const { name, phone_number } = req.payload;
-    const sql_participant = `UPDATE tbl_participants SET name = ?, phone_number = ? WHERE id = ?`;
-    await new Promise((resolve, reject) => {
-        db.run(sql_participant, [name, phone_number, id], function (err) {
-            if (err) {
-                console.log(err);
-                return reject(new Error('Database query error'));
-            }
-            resolve(true);
-        });
-    })
+    const { name, phone_number, status } = req.payload;
+
+    if (status != undefined) {
+        const sql_participant = `UPDATE tbl_participants SET name = ?, phone_number = ?, status = ? WHERE id = ?`;
+        await new Promise((resolve, reject) => {
+            db.run(sql_participant, [name, phone_number, status, id], function (err) {
+                if (err) {
+                    console.log(err);
+                    return reject(new Error('Database query error'));
+                }
+                resolve(true);
+            });
+        })
+    } else {
+        const sql_participant = `UPDATE tbl_participants SET name = ?, phone_number = ? WHERE id = ?`;
+        await new Promise((resolve, reject) => {
+            db.run(sql_participant, [name, phone_number, id], function (err) {
+                if (err) {
+                    console.log(err);
+                    return reject(new Error('Database query error'));
+                }
+                resolve(true);
+            });
+        })
+    }
+
+    socket.emit('participant-updated');
 
     return res.response(RES_TYPES[200](null, "Participant updated successfully"));
 }
@@ -342,6 +358,7 @@ const routes = [
                 payload: Joi.object({
                     name: Joi.string().required(),
                     phone_number: Joi.string().required(),
+                    status: Joi.number(),
                 })
             },
         },

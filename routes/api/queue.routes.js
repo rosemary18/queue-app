@@ -57,7 +57,7 @@ const handlerGetQueues = async (req, res) => {
 
 const handlerNextQueue = async (req, res) => {
 
-    const { booth_id } = req.payload
+    const { booth_id, skip } = req.payload
 
     // Get booth
     const sql_booth = `SELECT * FROM tbl_booths WHERE id = ?`;
@@ -86,17 +86,30 @@ const handlerNextQueue = async (req, res) => {
     })
 
     if (participant) {
-        // Update status participant to 1
-        const sql_update_participant = `UPDATE tbl_participants SET status = ? WHERE id = ?`;
-        new Promise((resolve, reject) => {
-            db.run(sql_update_participant, [1, participant.id], function (err) {
-                if (err) {
-                    console.log(err);
-                    return reject(new Error('Database query error'));
-                }
-                resolve(true);
-            });
-        })
+        if (skip) {
+            const sql_update_participant = `UPDATE tbl_participants SET serve_by_booth = NULL, status = 2 WHERE id = ?`;
+            new Promise((resolve, reject) => {
+                db.run(sql_update_participant, [participant.id], function (err) {
+                    if (err) {
+                        console.log(err);
+                        return reject(new Error('Database query error'));
+                    }
+                    resolve(true);
+                });
+            })
+        } else {
+            // Update status participant to 1
+            const sql_update_participant = `UPDATE tbl_participants SET status = ? WHERE id = ?`;
+            new Promise((resolve, reject) => {
+                db.run(sql_update_participant, [1, participant.id], function (err) {
+                    if (err) {
+                        console.log(err);
+                        return reject(new Error('Database query error'));
+                    }
+                    resolve(true);
+                });
+            })
+        }
     }
 
     // Get all participants
@@ -113,7 +126,7 @@ const handlerNextQueue = async (req, res) => {
 
     if (!(participants?.length > 0)) {
         socket.emit('queue-updated');
-        return res.response(RES_TYPES[200](null, "Queues completed successfully"));
+        return res.response(RES_TYPES[400]("Queues completed!"));
     }
 
     // Update serve_by_booth first items of participant to this booth
@@ -153,6 +166,7 @@ const routes = [
             validate: {
                 payload: Joi.object({
                     booth_id: Joi.number().required(),
+                    skip: Joi.boolean().default(false),
                 })
             },
         },

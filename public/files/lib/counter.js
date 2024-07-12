@@ -160,7 +160,7 @@ const handlerAddParticipant = () => {
     })
 }
 
-const handlerUpdateParticipant = () => {
+const handlerUpdateParticipant = (back_to_queue) => {
 
     const inputName = document.getElementById('input-name')
     const inputPhoneNumber = document.getElementById('input-phone-number')
@@ -172,6 +172,8 @@ const handlerUpdateParticipant = () => {
         "name": inputName.value,
         "phone_number": inputPhoneNumber.value
     }
+
+    if (back_to_queue) body.status = 0
 
     fetch(`/api/participant/update/${STATES.participant?.id}`, {
         method: 'PUT',
@@ -375,6 +377,7 @@ const renderTable = () => {
 
     for (let i = 0; i < STATES.participants?.length; i++) {
         const tr = document.createElement('tr')
+        const participant = STATES.participants?.[i]
         for (let j = 0; j < headers.length; j++) {
             const td = document.createElement('td')
             const tdc = document.createElement("div")
@@ -386,26 +389,26 @@ const renderTable = () => {
                     td.textContent = `${i + 1}`
                     break
                 case 1:
-                    td.textContent = STATES.participants?.[i].name
+                    td.textContent = participant.name
                     break
                 case 2:
-                    td.textContent = STATES.participants?.[i].queue_code
+                    td.textContent = participant.queue_code
                     break
                 case 3:
-                    td.textContent = STATES.participants?.[i].phone_number
+                    td.textContent = participant.phone_number
                     break
                 case 4:
                     const text = document.createElement("p")
                     const btnResend = createButton({ic: "bx-sync", onClick: handlerResendWa(i)})
-                    text.style.color = STATES.participants?.[i].wa_sent_status == 1 ? "green" : "gray"
-                    text.textContent = STATES.participants?.[i].wa_sent_status == 1 ? "Sent" : "Not Sent"
+                    text.style.color = participant.wa_sent_status == 1 ? "green" : "gray"
+                    text.textContent = participant.wa_sent_status == 1 ? "Sent" : "Not Sent"
                     tdc.appendChild(text)
                     tdc.appendChild(btnResend)
                     td.appendChild(tdc)
                     break
                 case 5:
-                    td.style.color = !STATES.participants?.[i].serve_by_booth ? "gray" : STATES.participants?.[i].status == 0 ? "green" : "white"
-                    td.textContent = !STATES.participants?.[i].serve_by_booth ? "Waiting" : STATES.participants?.[i].status == 0 ? "Being Served" : "Served"
+                    td.style.color = (participant?.status == 2 || !participant.serve_by_booth) ? "gray" : participant.status == 0 ? "green" : "white"
+                    td.textContent = participant?.status == 2 ? "Skipped" : !participant.serve_by_booth ? "Waiting" : participant.status == 0 ? "Being Served" : "Served"
                     break
                 case 6:
                     const btnEdit = createButton({
@@ -424,7 +427,7 @@ const renderTable = () => {
                     })
                     const btnDelete = createButton({ic: "bx-x", color: "red", backgroundColor: "#FF000035", onClick: handlerDeleteParticipant(i)})
                     tdc.appendChild(btnEdit)
-                    if (!(STATES.participants?.[i].serve_by_booth)) tdc.appendChild(btnDelete)
+                    if (!(participant.serve_by_booth)) tdc.appendChild(btnDelete)
                     td.appendChild(tdc)
                     break
             }
@@ -462,10 +465,12 @@ const renderForm = () => {
     const inputPhoneNumber = createInput("input-phone-number", "Phone Number", "24em", STATES.participant?.phone_number ?? "62")
     const btnContainer = document.createElement('div')
     const btnCancel = document.createElement('button')
+    const btnBackToQueue = document.createElement('button')
     const btnSubmit = document.createElement('button')
 
     title.classList.add('title-form')
     btnCancel.classList.add('button-blue')
+    btnBackToQueue.classList.add('button-blue')
     btnSubmit.classList.add('button')
 
     container.style.display = "flex"
@@ -482,10 +487,14 @@ const renderForm = () => {
     btnSubmit.style.marginRight = "6px"
 
     title.textContent = "Form Queues"
-    btnCancel.textContent = "CANCEL"
+    btnCancel.textContent = "Cancel"
+    btnBackToQueue.textContent = "Back to Queue"
     btnSubmit.textContent = STATES.participant != null ? "EDIT" : "SUBMIT"
 
-    if (STATES.participant != null) btnContainer.appendChild(btnCancel)
+    if (STATES.participant != null) {
+        btnContainer.appendChild(btnCancel)
+        if (STATES.participant?.status == 2) btnContainer.appendChild(btnBackToQueue)
+    }
     btnContainer.appendChild(btnSubmit)
     if (STATES.participant != null) container.appendChild(inputQueueCode)
     container.appendChild(inputName)
@@ -498,6 +507,11 @@ const renderForm = () => {
     btnCancel.onclick = () => {
         STATES.participant = null
         renderScreen()
+    }
+    btnBackToQueue.onclick = () => {
+        let confirmed = confirm(`Are you sure to bring back queue ${STATES.participant?.queue_code} to queues ?`)
+        if (!confirmed) return
+        handlerUpdateParticipant(true)
     }
     btnSubmit.onclick = () => {
         if (STATES.participant != null) handlerUpdateParticipant()
